@@ -1,0 +1,131 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 50
+
+struct Patient
+{
+    char name[30];
+    int priority;
+    int order;
+};
+
+struct Patient heap[MAX];
+int size = 0;
+int arrival = 0;
+
+void addPatient(char name[], int priority)
+{
+    int i = size;
+
+    strcpy(heap[i].name, name);
+    heap[i].priority = priority;
+    heap[i].order = ++arrival;
+    size++;
+
+    while (i > 0)
+    {
+        int parent = (i - 1) / 2;
+
+        if (heap[parent].priority < heap[i].priority ||
+           (heap[parent].priority == heap[i].priority &&
+            heap[parent].order < heap[i].order))
+            break;
+
+        struct Patient temp = heap[parent];
+        heap[parent] = heap[i];
+        heap[i] = temp;
+
+        i = parent;
+    }
+}
+
+void treatNext()
+{
+    if (size == 0)
+    {
+        printf("No patients waiting.\n");
+        return;
+    }
+
+    printf("Treating: %s (Priority %d)\n",
+           heap[0].name, heap[0].priority);
+
+    heap[0] = heap[size - 1];
+    size--;
+
+    int i = 0;
+
+    while (1)
+    {
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        int smallest = i;
+
+        if (left < size &&
+            (heap[left].priority < heap[smallest].priority ||
+            (heap[left].priority == heap[smallest].priority &&
+             heap[left].order < heap[smallest].order)))
+        {
+            smallest = left;
+        }
+
+        if (right < size &&
+            (heap[right].priority < heap[smallest].priority ||
+            (heap[right].priority == heap[smallest].priority &&
+             heap[right].order < heap[smallest].order)))
+        {
+            smallest = right;
+        }
+
+        if (smallest == i)
+            break;
+
+        struct Patient temp = heap[i];
+        heap[i] = heap[smallest];
+        heap[smallest] = temp;
+
+        i = smallest;
+    }
+}
+
+int main()
+{
+    addPatient("P1", 3);
+    addPatient("P2", 1);
+    addPatient("P3", 2);
+    addPatient("P4", 1);
+    addPatient("P5", 3);
+    addPatient("P6", 2);
+
+    printf("Treatment Order:\n");
+
+    while (size > 0)
+    {
+        treatNext();
+    }
+
+    printf("\nEmergency Patient Test:\n");
+
+    addPatient("P1", 3);
+    addPatient("P2", 1);
+    addPatient("P3", 2);
+    addPatient("P4", 1);
+    addPatient("P5", 3);
+    addPatient("P6", 2);
+
+    treatNext();
+    treatNext();
+    treatNext();
+
+    addPatient("P7", 1);
+
+    printf("New Emergency Patient P7 added.\n");
+
+    while (size > 0)
+    {
+        treatNext();
+    }
+
+    return 0;
+}
